@@ -8,7 +8,8 @@ public class FindNearest : MonoBehaviour
 {
     static readonly ProfilerMarker s_PreparePerfMarkerFirst = new ProfilerMarker("FindTargetFirst");
     static readonly ProfilerMarker s_PreparePerfMarkerSecond = new ProfilerMarker("FindTargetSecond");
-
+    static readonly ProfilerMarker s_PreparePerfMarkerThird = new ProfilerMarker("FindTargetThird");
+    static readonly ProfilerMarker s_PreparePerfMarkerForth = new ProfilerMarker("FindTargetForth");
 
     NativeArray<float3> TargetPositions;
     NativeArray<float3> SeekerPositions;
@@ -32,16 +33,22 @@ public class FindNearest : MonoBehaviour
 
     public void Update()
     {
-        
         s_PreparePerfMarkerFirst.Begin();
         UpdateFirstTry();
         s_PreparePerfMarkerFirst.End();
 
-        /*
         s_PreparePerfMarkerSecond.Begin();
         UpdateSecondTry();
         s_PreparePerfMarkerSecond.End();
-        */
+
+        s_PreparePerfMarkerThird.Begin();
+        UpdateThirdTry();
+        s_PreparePerfMarkerThird.End();
+
+        s_PreparePerfMarkerForth.Begin();
+        UpdateForthTry();
+        s_PreparePerfMarkerForth.End();
+
     }
 
     public void UpdateFirstTry() {
@@ -87,6 +94,65 @@ public class FindNearest : MonoBehaviour
         findHandle.Complete();
 
         for (int i = 0; i < SeekerPositions.Length; i++) {
+            Debug.DrawLine(SeekerPositions[i], NearestTargetPositions[i]);
+        }
+    }
+
+    public void UpdateThirdTry()
+    {
+        for (int i = 0; i < TargetPositions.Length; i++)
+        {
+            TargetPositions[i] = Spawner.TargetTransforms[i].localPosition;
+        }
+
+        for (int i = 0; i < SeekerPositions.Length; i++)
+        {
+            SeekerPositions[i] = Spawner.SeekerTransforms[i].localPosition;
+        }
+
+        FindNearestJobParallel findJob = new FindNearestJobParallel
+        {
+            TargetPositions = TargetPositions,
+            SeekerPositions = SeekerPositions,
+            NearestTargetPositions = NearestTargetPositions,
+        };
+
+        JobHandle findHandle = findJob.Schedule(SeekerPositions.Length, 100);
+
+        findHandle.Complete();
+
+        for (int i = 0; i < SeekerPositions.Length; i++)
+        {
+            Debug.DrawLine(SeekerPositions[i], NearestTargetPositions[i]);
+        }
+    }
+
+    public void UpdateForthTry() {
+        for (int i = 0; i < TargetPositions.Length; i++)
+        {
+            TargetPositions[i] = Spawner.TargetTransforms[i].localPosition;
+        }
+
+        for (int i = 0; i < SeekerPositions.Length; i++)
+        {
+            SeekerPositions[i] = Spawner.SeekerTransforms[i].localPosition;
+        }
+        SortJob<float3, AxisXComparer> sortJob = TargetPositions.SortJob(new AxisXComparer { });
+        JobHandle sortHandle = sortJob.Schedule();
+
+        FindNearestJobParallelSecond findJob = new FindNearestJobParallelSecond
+        {
+            TargetPositions = TargetPositions,
+            SeekerPositions = SeekerPositions,
+            NearestTargetPositions = NearestTargetPositions,
+        };
+
+        JobHandle findHandle = findJob.Schedule(SeekerPositions.Length, 100);
+
+        findHandle.Complete();
+
+        for (int i = 0; i < SeekerPositions.Length; i++)
+        {
             Debug.DrawLine(SeekerPositions[i], NearestTargetPositions[i]);
         }
     }
