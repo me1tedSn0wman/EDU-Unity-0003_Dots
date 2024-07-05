@@ -30,7 +30,12 @@ public partial struct TankSpawnSystem : ISystem
                     state.EntityManager.SetComponentData(entity.Value, color);
                 }
             }
+
+            if (i == 0) {
+                state.EntityManager.AddComponent<Player>(tankEntity);
+            }
         }
+
     }
 
     static float4 RandomColor(ref Random random) {

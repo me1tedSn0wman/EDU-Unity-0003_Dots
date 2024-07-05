@@ -168,8 +168,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   TankPrefab: {fileID: 4884086231943294320, guid: 358c1bee2995da348825a78b945f8a61,
     type: 3}
-  CannonBallPrefab: {fileID: 0}
-  TankCount: 1000
+  CannonBallPrefab: {fileID: 4771554725882093006, guid: 62b8f99371795dd4683f67d0155845fa,
+    type: 3}
+  TankCount: 100
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

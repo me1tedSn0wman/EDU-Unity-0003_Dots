@@ -11,6 +11,7 @@ public partial struct TankMovementSystem : ISystem
 
         foreach (var (transform, entity) in SystemAPI.Query<RefRW<LocalTransform>>()
             .WithAll<Tank>()
+            .WithNone<Player>()
             .WithEntityAccess()) {
             var pos = transform.ValueRO.Position;
 
@@ -22,6 +23,17 @@ public partial struct TankMovementSystem : ISystem
 
             transform.ValueRW.Position += dir * dt * 5.0f;
             transform.ValueRW.Rotation = quaternion.RotateY(angle);
+
+
+        }
+
+        var spin = quaternion.RotateY(SystemAPI.Time.DeltaTime * math.PI);
+
+        foreach (var tank in SystemAPI.Query<RefRW<Tank>>())
+        {
+            var trans = SystemAPI.GetComponentRW<LocalTransform>(tank.ValueRO.Turret);
+
+            trans.ValueRW.Rotation = math.mul(spin, trans.ValueRO.Rotation);
         }
     }
 }
